@@ -1,8 +1,13 @@
 import 'package:expenses_app/core/utils/constant.dart';
+import 'package:expenses_app/core/utils/styles.dart';
 import 'package:expenses_app/main.dart';
+import 'package:expenses_app/screens/home_screen/manager/localization_bloc.dart';
+import 'package:expenses_app/screens/home_screen/manager/localization_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:intl/intl.dart';
+import '../../../generated/l10n.dart';
 import '../../../model/expenses_model.dart';
 import '../widgets/add_new_item.dart';
 import '../widgets/cahrt/chart.dart';
@@ -35,9 +40,8 @@ class _HomeScreenViewState extends State<HomeScreenView> {
     return Scaffold(
       appBar: homeAppBar(() {
         showModalBottomSheet(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(0)
-          ),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
             isScrollControlled: true,
             clipBehavior: Clip.antiAliasWithSaveLayer,
             useSafeArea: true,
@@ -50,21 +54,23 @@ class _HomeScreenViewState extends State<HomeScreenView> {
       }),
       body: Column(
         children: [
-          SizedBox(height: MediaQuery.of(context).size.height * .3, 
-          child: Chart(expenses: expensesList)),
+          SizedBox(
+              height: MediaQuery.of(context).size.height * .3,
+              child: Chart(expenses: expensesList)),
           expensesList.isEmpty
               ? Expanded(
                   child: Image.asset(
                     noExpense,
-                    width: MediaQuery.of(context).size.width * .6, 
-                    height: MediaQuery.of(context).size.height * .6, 
+                    width: MediaQuery.of(context).size.width * .6,
+                    height: MediaQuery.of(context).size.height * .6,
                   ),
                 )
               : Expanded(
                   child: AspectRatio(
                     aspectRatio: 4 / 1.5,
                     child: ListView.builder(
-                      padding:  EdgeInsetsDirectional.only(top:  MediaQuery.of(context).size.height * .001),
+                      padding: EdgeInsetsDirectional.only(
+                          top: MediaQuery.of(context).size.height * .001),
                       itemCount: expensesList.length,
                       itemBuilder: (context, index) {
                         return Dismissible(
@@ -85,26 +91,64 @@ class _HomeScreenViewState extends State<HomeScreenView> {
 
   AppBar homeAppBar(void Function() onPressed) {
     return AppBar(
-      title: Text(
-        'My Expenses',
-        style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 25,
-            color: myColorScheme.onPrimary),
-      ),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          padding:  EdgeInsetsDirectional.symmetric(horizontal: MediaQuery.of(context).size.width * .05),
-          style: ButtonStyle(
-              overlayColor: const MaterialStatePropertyAll(Colors.transparent),
-              iconSize: const MaterialStatePropertyAll(30),
-              foregroundColor:
-                  MaterialStatePropertyAll(myColorScheme.onPrimary)),
-          onPressed: onPressed,
-          icon: const Icon(FontAwesomeIcons.plus),
-        )
-      ],
-    );
+        title: Text(
+          S.of(context).title,
+          style: style25.copyWith(
+              color: myColorScheme.onPrimary, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        actions: [
+          PopupMenuButton(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            elevation: 10,
+            shadowColor: myColorScheme.onPrimary,
+            icon: const Icon(FontAwesomeIcons.ellipsisVertical),
+            color: myColorScheme.onPrimaryContainer,
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  child: TextButton.icon(
+                    style: ButtonStyle(
+                        overlayColor:
+                            const MaterialStatePropertyAll(Colors.transparent),
+                        foregroundColor:
+                            MaterialStatePropertyAll(myColorScheme.onPrimary)),
+                    onPressed: onPressed,
+                    icon: const Icon(FontAwesomeIcons.plus),
+                    label: Text(S.of(context).add),
+                  ),
+                ),
+                PopupMenuItem(
+                  child: TextButton.icon(
+                    style: ButtonStyle(
+                        overlayColor:
+                            const MaterialStatePropertyAll(Colors.transparent),
+                        foregroundColor:
+                            MaterialStatePropertyAll(myColorScheme.onPrimary)),
+                    onPressed: () {
+                      if (isArabic()) {
+                        context
+                            .read<LocalizationBloc>()
+                            .add(const ChaneLocalization(Locale('en')));
+                      } else {
+                        context
+                            .read<LocalizationBloc>()
+                            .add(const ChaneLocalization(Locale('ar')));
+                      }
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(FontAwesomeIcons.globe),
+                    label: Text(S.of(context).lan),
+                  ),
+                )
+              ];
+            },
+          ),
+        ]);
+  }
+
+  bool isArabic() {
+    return Intl.getCurrentLocale() == 'ar';
   }
 }
